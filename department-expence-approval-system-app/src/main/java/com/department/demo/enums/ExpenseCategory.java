@@ -2,8 +2,9 @@ package com.department.demo.enums;
 
 public enum ExpenseCategory {
     TRAVEL,
-    MEALS,
+    FOOD,
+    TRAINING,
     OFFICE_SUPPLIES,
-    SOFTWARE_LICENSE,
+    MEDICAL,
     OTHER
 }
