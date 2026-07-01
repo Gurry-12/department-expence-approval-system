@@ -6,6 +6,8 @@ import com.department.demo.entity.Department;
 import com.department.demo.exception.BadRequestException;
 import com.department.demo.exception.DuplicateResourceException;
 import com.department.demo.exception.ResourceNotFoundException;
+import com.department.demo.repository.DepartmentBudgetRepository;
+import com.department.demo.repository.ExpenseClaimRepository;
 import com.department.demo.repository.DepartmentRepository;
 import com.department.demo.service.DepartmentService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
 public class DepartmentServiceImpl implements DepartmentService {
 
     private final DepartmentRepository departmentRepository;
+    private final DepartmentBudgetRepository budgetRepository;
+    private final ExpenseClaimRepository claimRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -81,10 +85,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     public void deleteDepartment(Long id) {
         Department department = findDepartmentById(id);
 
-        if (!department.getBudgets().isEmpty()) {
+        if (budgetRepository.countByDepartmentId(id) > 0) {
             throw new BadRequestException("Cannot delete department because budgets exist");
         }
-        if (!department.getExpenseClaims().isEmpty()) {
+        if (claimRepository.countByDepartmentId(id) > 0) {
             throw new BadRequestException("Cannot delete department because expense claims exist");
         }
 

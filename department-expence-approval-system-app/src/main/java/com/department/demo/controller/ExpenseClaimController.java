@@ -5,6 +5,7 @@ import com.department.demo.dto.ExpenseClaimResponseDTO;
 import com.department.demo.enums.ClaimStatus;
 import com.department.demo.enums.ExpenseCategory;
 import com.department.demo.response.GlobalResponse;
+import com.department.demo.response.PageResponse;
 import com.department.demo.service.ExpenseClaimService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class ExpenseClaimController {
     }
 
     @GetMapping
-    public ResponseEntity<GlobalResponse<Page<ExpenseClaimResponseDTO>>> getClaims(
+    public ResponseEntity<GlobalResponse<PageResponse<ExpenseClaimResponseDTO>>> getClaims(
             @RequestParam(required = false) Long departmentId,
             @RequestParam(required = false) ExpenseCategory expenseCategory,
             @RequestParam(required = false) ClaimStatus status,
@@ -50,7 +51,9 @@ public class ExpenseClaimController {
         Page<ExpenseClaimResponseDTO> claims = claimService.getClaims(
                 departmentId, expenseCategory, status, month, year, employeeName, pageable);
 
-        return ResponseEntity.ok(GlobalResponse.success(claims, "Expense Claims retrieved successfully"));
+        PageResponse<ExpenseClaimResponseDTO> pageResponse = new PageResponse<>(claims);
+
+        return ResponseEntity.ok(GlobalResponse.success(pageResponse, "Expense Claims retrieved successfully"));
     }
 
     @GetMapping("/{id}")

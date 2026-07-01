@@ -50,4 +50,7 @@ public class ExpenseClaim extends BaseEntity {
 
     @Column(name = "reviewed_at")
     private LocalDateTime reviewedAt;
+
+    @Version
+    private Long version;
 }

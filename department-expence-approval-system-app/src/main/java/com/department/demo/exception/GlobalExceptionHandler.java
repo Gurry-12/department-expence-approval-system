@@ -3,6 +3,7 @@ package com.department.demo.exception;
 import com.department.demo.response.GlobalResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -44,6 +45,12 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(GlobalResponse.error(errors));
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<GlobalResponse<Void>> handleOptimisticLockingFailureException(ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(GlobalResponse.error("Conflict: The resource was modified by another transaction. Please refresh and try again."));
     }
 
     @ExceptionHandler(Exception.class)

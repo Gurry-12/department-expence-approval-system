@@ -10,9 +10,18 @@ import org.springframework.data.repository.query.Param;
 import com.department.demo.enums.ClaimStatus;
 import java.math.BigDecimal;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 @Repository
 public interface ExpenseClaimRepository extends JpaRepository<ExpenseClaim, Long>, JpaSpecificationExecutor<ExpenseClaim> {
+
+    @EntityGraph(attributePaths = {"department"})
+    Page<ExpenseClaim> findAll(Specification<ExpenseClaim> spec, Pageable pageable);
+
+    long countByDepartmentId(Long departmentId);
 
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM ExpenseClaim e WHERE e.department.id = :departmentId AND e.status = :status AND MONTH(e.expenseDate) = :month AND YEAR(e.expenseDate) = :year")
     BigDecimal calculateTotalApprovedAmount(

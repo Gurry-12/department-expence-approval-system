@@ -33,4 +33,7 @@ public class DepartmentBudget extends BaseEntity {
 
     @Column(name = "budget_amount", nullable = false)
     private BigDecimal budgetAmount;
+
+    @Version
+    private Long version;
 }

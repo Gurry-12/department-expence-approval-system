@@ -12,4 +12,5 @@ public interface DepartmentBudgetRepository extends JpaRepository<DepartmentBudg
     boolean existsByDepartmentIdAndMonthAndYear(Long departmentId, Month month, Integer year);
     boolean existsByDepartmentIdAndMonthAndYearAndIdNot(Long departmentId, Month month, Integer year, Long id);
     Optional<DepartmentBudget> findByDepartmentIdAndMonthAndYear(Long departmentId, Month month, Integer year);
+    long countByDepartmentId(Long departmentId);
 }

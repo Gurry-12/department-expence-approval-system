@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class ExpenseClaimResponseDTO {
     private Long id;
     private String employeeName;
-    private DepartmentResponseDTO department;
+    private String department;
     private ExpenseCategory expenseCategory;
     private BigDecimal amount;
     private LocalDate expenseDate;
