@@ -3,8 +3,20 @@ import { useForm } from 'react-hook-form';
 import { AppModal, AppButton } from '../../common';
 import { MONTHS } from '../../constants';
 
+const YEARS = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+
+const formatMonth = (m) => {
+  if (!m) return '';
+  const name = typeof m === 'number' ? MONTHS[m - 1] : m;
+  return name ? name.charAt(0) + name.slice(1).toLowerCase() : m;
+};
+
 export const BudgetFormModal = ({ isOpen, onClose, onSubmit, defaultValues = null, departments = [] }) => {
   const isEditing = !!defaultValues;
+
+  const sortedDepts = [...departments].sort((a, b) =>
+    a.departmentName.localeCompare(b.departmentName)
+  );
 
   const {
     register,
@@ -12,141 +24,165 @@ export const BudgetFormModal = ({ isOpen, onClose, onSubmit, defaultValues = nul
     reset,
     formState: { errors, isSubmitting },
   } = useForm({
-    defaultValues: defaultValues || {
-      departmentId: '',
-      month: '',
-      year: new Date().getFullYear(),
-      budgetAmount: ''
-    }
+    defaultValues: defaultValues
+      ? { ...defaultValues, month: typeof defaultValues.month === 'number' ? MONTHS[defaultValues.month - 1] : defaultValues.month }
+      : { departmentId: '', month: '', year: new Date().getFullYear(), budgetAmount: '' },
   });
 
   useEffect(() => {
     if (isOpen) {
-      reset(defaultValues || {
-        departmentId: '',
-        month: '',
-        year: new Date().getFullYear(),
-        budgetAmount: ''
-      });
+      if (defaultValues) {
+        reset({
+          ...defaultValues,
+          month: typeof defaultValues.month === 'number' ? MONTHS[defaultValues.month - 1] : defaultValues.month,
+        });
+      } else {
+        reset({ departmentId: '', month: '', year: new Date().getFullYear(), budgetAmount: '' });
+      }
     }
   }, [isOpen, defaultValues, reset]);
 
-  const onFormSubmit = async (data) => {
+  const onFormSubmit = async (values) => {
     const payload = {
-      departmentId: Number(data.departmentId),
-      month: data.month,
-      year: Number(data.year),
-      budgetAmount: parseFloat(data.budgetAmount)
+      departmentId: Number(values.departmentId),
+      month: values.month,
+      year: Number(values.year),
+      budgetAmount: parseFloat(values.budgetAmount),
     };
     await onSubmit(payload);
   };
 
   const footer = (
     <>
-      <AppButton variant="light" onClick={onClose} disabled={isSubmitting}>
-        Cancel
-      </AppButton>
-      <AppButton 
-        variant="primary" 
-        onClick={handleSubmit(onFormSubmit)} 
+      <AppButton variant="light" onClick={onClose} disabled={isSubmitting}>Cancel</AppButton>
+      <AppButton
+        variant="primary"
+        type="submit"
+        onClick={handleSubmit(onFormSubmit)}
         disabled={isSubmitting}
       >
-        {isSubmitting ? (
-          <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...</>
-        ) : (
-          'Save Budget'
-        )}
+        {isSubmitting
+          ? <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" /> Saving…</>
+          : isEditing ? 'Update Budget' : 'Allocate Budget'
+        }
       </AppButton>
     </>
   );
 
   return (
-    <AppModal 
-      isOpen={isOpen} 
-      title={isEditing ? 'Update Budget' : 'Allocate Budget'} 
-      onClose={onClose} 
+    <AppModal
+      isOpen={isOpen}
+      title={isEditing ? 'Update Budget Allocation' : 'Allocate Budget'}
+      onClose={onClose}
       footer={footer}
+      size="sm"
     >
-      <form onSubmit={handleSubmit(onFormSubmit)}>
-        <div className="row">
-          <div className="col-md-12 mb-3">
-            <label className="form-label fw-semibold text-secondary">
-              Department <span className="text-danger">*</span>
+      <form onSubmit={handleSubmit(onFormSubmit)} noValidate>
+        <div className="row g-3">
+          <div className="col-12">
+            <label className="form-label" htmlFor="b-dept">
+              Department <span aria-hidden="true" style={{ color: '#DC2626' }}>*</span>
             </label>
             <select
+              id="b-dept"
               className={`form-select ${errors.departmentId ? 'is-invalid' : ''}`}
-              disabled={isEditing || isSubmitting}
-              {...register('departmentId', { required: 'Department is required' })}
+              aria-required="true"
+              {...register('departmentId', {
+                required: 'Department is required',
+                disabled: isEditing || isSubmitting,
+              })}
             >
               <option value="">Select Department</option>
-              {departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.departmentName}
-                </option>
+              {sortedDepts.map((dept) => (
+                <option key={dept.id} value={dept.id}>{dept.departmentName}</option>
               ))}
             </select>
-            {errors.departmentId && <div className="invalid-feedback">{errors.departmentId.message}</div>}
+            {errors.departmentId && (
+              <div className="invalid-feedback" role="alert">{errors.departmentId.message}</div>
+            )}
           </div>
 
-          <div className="col-md-6 mb-3">
-            <label className="form-label fw-semibold text-secondary">
-              Month <span className="text-danger">*</span>
+          <div className="col-6">
+            <label className="form-label" htmlFor="b-month">
+              Month <span aria-hidden="true" style={{ color: '#DC2626' }}>*</span>
             </label>
             <select
+              id="b-month"
               className={`form-select ${errors.month ? 'is-invalid' : ''}`}
-              disabled={isEditing || isSubmitting}
-              {...register('month', { required: 'Month is required' })}
+              aria-required="true"
+              {...register('month', {
+                required: 'Month is required',
+                disabled: isEditing || isSubmitting,
+              })}
             >
               <option value="">Select Month</option>
-              {MONTHS.map((month) => (
-                <option key={month} value={month}>{month}</option>
+              {MONTHS.map((m) => (
+                <option key={m} value={m}>{formatMonth(m)}</option>
               ))}
             </select>
-            {errors.month && <div className="invalid-feedback">{errors.month.message}</div>}
+            {errors.month && (
+              <div className="invalid-feedback" role="alert">{errors.month.message}</div>
+            )}
           </div>
 
-          <div className="col-md-6 mb-3">
-            <label className="form-label fw-semibold text-secondary">
-              Year <span className="text-danger">*</span>
+          <div className="col-6">
+            <label className="form-label" htmlFor="b-year">
+              Year <span aria-hidden="true" style={{ color: '#DC2626' }}>*</span>
             </label>
-            <input
-              type="number"
-              className={`form-control ${errors.year ? 'is-invalid' : ''}`}
-              disabled={isEditing || isSubmitting}
-              {...register('year', { 
+            <select
+              id="b-year"
+              className={`form-select ${errors.year ? 'is-invalid' : ''}`}
+              aria-required="true"
+              {...register('year', {
                 required: 'Year is required',
-                min: { value: 2000, message: 'Year must be 2000 or later' },
-                max: { value: 2100, message: 'Year cannot exceed 2100' }
+                disabled: isEditing || isSubmitting,
               })}
-            />
-            {errors.year && <div className="invalid-feedback">{errors.year.message}</div>}
+            >
+              {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+            {errors.year && (
+              <div className="invalid-feedback" role="alert">{errors.year.message}</div>
+            )}
           </div>
 
-          <div className="col-md-12 mb-3">
-            <label className="form-label fw-semibold text-secondary">
-              Budget Amount (USD) <span className="text-danger">*</span>
+          <div className="col-12">
+            <label className="form-label" htmlFor="b-amount">
+              Budget Amount (INR) <span aria-hidden="true" style={{ color: '#DC2626' }}>*</span>
             </label>
             <input
+              id="b-amount"
               type="number"
               step="0.01"
               className={`form-control ${errors.budgetAmount ? 'is-invalid' : ''}`}
               disabled={isSubmitting}
               placeholder="e.g. 50000.00"
-              {...register('budgetAmount', { 
+              aria-required="true"
+              {...register('budgetAmount', {
                 required: 'Budget amount is required',
-                min: { value: 0.01, message: 'Amount must be greater than 0' }
+                min: { value: 0.01, message: 'Amount must be greater than 0' },
               })}
             />
-            {errors.budgetAmount && <div className="invalid-feedback">{errors.budgetAmount.message}</div>}
+            {errors.budgetAmount && (
+              <div className="invalid-feedback" role="alert">{errors.budgetAmount.message}</div>
+            )}
           </div>
+
+          {isEditing && (
+            <div className="col-12">
+              <div
+                style={{
+                  background: '#EFF6FF', border: '1px solid rgba(37,99,235,0.2)',
+                  borderRadius: 8, padding: '10px 14px',
+                  display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: '#1D4ED8',
+                }}
+                role="note"
+              >
+                <i className="bi bi-info-circle-fill" style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
+                <span>Only the <strong>Budget Amount</strong> can be updated. Department, Month, and Year are locked.</span>
+              </div>
+            </div>
+          )}
         </div>
-        
-        {isEditing && (
-          <div className="alert alert-info py-2 mt-2 mb-0 border-0">
-            <i className="bi bi-info-circle me-2"></i>
-            Only the Budget Amount can be updated. Department, Month, and Year are locked.
-          </div>
-        )}
       </form>
     </AppModal>
   );

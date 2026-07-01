@@ -8,14 +8,19 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import 'react-toastify/dist/ReactToastify.css'
 
+import './index.css'
 import './styles/index.css'
 import App from './App.jsx'
 
+import { RoleProvider } from './context'
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-      <ToastContainer position="top-right" autoClose={3000} />
-    </BrowserRouter>
+    <RoleProvider>
+      <BrowserRouter>
+        <App />
+        <ToastContainer position="top-right" autoClose={3000} />
+      </BrowserRouter>
+    </RoleProvider>
   </StrictMode>,
 )

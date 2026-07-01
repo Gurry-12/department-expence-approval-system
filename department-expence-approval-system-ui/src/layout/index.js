@@ -1,4 +1,4 @@
-export * from './Navbar';
-export * from './Sidebar';
-export * from './Footer';
-export * from './MainLayout';
+export { MainLayout } from './MainLayout';
+export { Navbar } from './Navbar';
+export { Sidebar, MobileSidebar } from './Sidebar';
+export { Footer } from './Footer';

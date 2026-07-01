@@ -1,7 +1,15 @@
-export const EmptyState = ({ title = "No Data Found", description = "There are no records to display at this time.", icon = "bi-inbox" }) => (
-  <div className="text-center py-5 bg-light rounded border border-light">
-    <i className={`bi ${icon} text-muted mb-3`} style={{ fontSize: "3rem" }}></i>
-    <h5 className="text-dark fw-semibold">{title}</h5>
-    <p className="text-muted">{description}</p>
+export const EmptyState = ({
+  title = 'No Records Found',
+  description = 'There are no records to display at this time.',
+  icon = 'bi-inbox',
+  action = null,
+}) => (
+  <div className="ef-empty">
+    <div className="ef-empty-icon" aria-hidden="true">
+      <i className={`bi ${icon}`} />
+    </div>
+    <h3 className="ef-empty-title">{title}</h3>
+    <p className="ef-empty-msg">{description}</p>
+    {action && <div>{action}</div>}
   </div>
 );

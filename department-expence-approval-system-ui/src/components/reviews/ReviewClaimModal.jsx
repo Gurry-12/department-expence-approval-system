@@ -1,134 +1,139 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AppModal, AppButton, StatusBadge } from '../../common';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { CLAIM_STATUS } from '../../constants';
 
+const DetailRow = ({ label, children }) => (
+  <div>
+    <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', margin: '0 0 3px' }}>{label}</p>
+    <div style={{ fontSize: 14, fontWeight: 600, color: '#1E293B' }}>{children}</div>
+  </div>
+);
+
 export const ReviewClaimModal = ({ isOpen, onClose, onSubmit, claim }) => {
+  const [pendingAction, setPendingAction] = useState(null);
+  const maxRemark = 500;
+
   const {
     register,
     trigger,
     getValues,
     reset,
+    watch,
     formState: { errors, isSubmitting },
-  } = useForm({
-    defaultValues: {
-      reviewRemark: ''
-    }
-  });
+  } = useForm({ defaultValues: { reviewRemark: '' } });
 
   useEffect(() => {
-    if (isOpen) {
-      reset({ reviewRemark: '' });
-    }
+    if (isOpen) { reset({ reviewRemark: '' }); setPendingAction(null); }
   }, [isOpen, reset]);
 
+  const remarkValue = watch('reviewRemark', '');
+
   const handleAction = async (status) => {
-    // If Rejecting, review remark is mandatory
     if (status === CLAIM_STATUS.REJECTED) {
       const isValid = await trigger('reviewRemark');
       if (!isValid) return;
     }
-
     const remark = getValues('reviewRemark');
-    
     await onSubmit({
       recommendedStatus: status,
-      reviewRemark: remark ? remark.trim() : null
+      reviewRemark: remark ? remark.trim() : null,
     });
   };
 
   const footer = (
-    <div className="d-flex justify-content-between w-100">
-      <AppButton variant="light" onClick={onClose} disabled={isSubmitting}>
-        Cancel
-      </AppButton>
-      <div className="d-flex gap-2">
-        <AppButton 
-          variant="danger" 
-          onClick={() => handleAction(CLAIM_STATUS.REJECTED)} 
+    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+      <AppButton variant="light" onClick={onClose} disabled={isSubmitting}>Cancel</AppButton>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <AppButton
+          variant="outline-danger"
+          icon="bi-x-circle"
+          onClick={() => handleAction(CLAIM_STATUS.REJECTED)}
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Processing...' : 'Reject'}
+          {isSubmitting && pendingAction === 'reject' ? 'Processing…' : 'Reject'}
         </AppButton>
-        <AppButton 
-          variant="success" 
-          onClick={() => handleAction(CLAIM_STATUS.APPROVED)} 
+        <AppButton
+          variant="success"
+          icon="bi-check-circle"
+          onClick={() => handleAction(CLAIM_STATUS.APPROVED)}
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Processing...' : 'Approve'}
+          {isSubmitting && pendingAction === 'approve' ? 'Processing…' : 'Approve'}
         </AppButton>
       </div>
     </div>
   );
 
   return (
-    <AppModal 
-      isOpen={isOpen} 
-      title="Review Expense Claim" 
-      onClose={onClose} 
+    <AppModal
+      isOpen={isOpen}
+      title="Review Expense Claim"
+      onClose={onClose}
       footer={footer}
     >
       {claim && (
-        <div className="row g-3">
-          <div className="col-12">
-            <h6 className="border-bottom pb-2 mb-3 text-primary">Claim Details</h6>
-          </div>
-
-          <div className="col-md-6">
-            <label className="form-label small text-muted mb-1">Employee</label>
-            <div className="fw-semibold">{claim.employeeName}</div>
-          </div>
-          
-          <div className="col-md-6">
-            <label className="form-label small text-muted mb-1">Department</label>
-            <div className="fw-semibold">{claim.department}</div>
-          </div>
-
-          <div className="col-md-6">
-            <label className="form-label small text-muted mb-1">Category</label>
-            <div className="fw-semibold">{claim.expenseCategory}</div>
-          </div>
-
-          <div className="col-md-6">
-            <label className="form-label small text-muted mb-1">Amount</label>
-            <div className="fw-semibold text-success">{formatCurrency(claim.amount)}</div>
-          </div>
-
-          <div className="col-md-6">
-            <label className="form-label small text-muted mb-1">Date</label>
-            <div className="fw-semibold">{formatDate(claim.expenseDate)}</div>
-          </div>
-
-          <div className="col-md-6">
-            <label className="form-label small text-muted mb-1">Current Status</label>
-            <div><StatusBadge status={claim.status} /></div>
-          </div>
-
-          <div className="col-12">
-            <label className="form-label small text-muted mb-1">Description</label>
-            <div className="p-2 bg-light rounded text-break">
-              {claim.description || <span className="text-muted fst-italic">No description provided</span>}
+        <div>
+          {/* Claim summary card */}
+          <div style={{ background: '#F8FAFC', borderRadius: 10, padding: '16px 20px', marginBottom: 20, border: '1px solid #E2E8F0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#94A3B8' }}>Claim Details</span>
+              <StatusBadge status={claim.status} />
+            </div>
+            <div className="row g-3">
+              <div className="col-6"><DetailRow label="Employee">{claim.employeeName}</DetailRow></div>
+              <div className="col-6"><DetailRow label="Department">{claim.department}</DetailRow></div>
+              <div className="col-6"><DetailRow label="Category">{claim.expenseCategory?.replace(/_/g,' ')}</DetailRow></div>
+              <div className="col-6">
+                <DetailRow label="Amount">
+                  <span style={{ color: '#16A34A', fontSize: 16 }}>{formatCurrency(claim.amount)}</span>
+                </DetailRow>
+              </div>
+              <div className="col-6"><DetailRow label="Expense Date">{formatDate(claim.expenseDate)}</DetailRow></div>
+              <div className="col-6"><DetailRow label="Submitted">{formatDate(claim.createdAt)}</DetailRow></div>
+              {claim.description && (
+                <div className="col-12">
+                  <DetailRow label="Description">
+                    <span style={{ fontWeight: 400, color: '#475569', fontSize: 13 }}>{claim.description}</span>
+                  </DetailRow>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="col-12 mt-4">
-            <h6 className="border-bottom pb-2 mb-3 text-primary">Review Action</h6>
-            <label className="form-label fw-semibold text-secondary">
-              Review Remark <span className="text-danger">* (Required for Rejection)</span>
+          {/* Review action */}
+          <div>
+            <label className="form-label" htmlFor="review-remark">
+              Review Remarks
+              <span style={{ fontSize: 11, color: '#DC2626', marginLeft: 6 }}>* Required when rejecting</span>
             </label>
             <textarea
+              id="review-remark"
               className={`form-control ${errors.reviewRemark ? 'is-invalid' : ''}`}
               disabled={isSubmitting}
               rows="3"
-              placeholder="Enter your review remarks..."
+              placeholder="Enter your review remarks here…"
+              maxLength={maxRemark}
+              aria-describedby="remark-count"
               {...register('reviewRemark', {
                 validate: {
-                  requiredForRejection: (value) => true // Validation handled manually in handleAction for context-awareness
-                }
+                  requiredForRejection: () => true, // Validation triggered manually in handleAction
+                },
               })}
-            ></textarea>
-            {errors.reviewRemark && <div className="invalid-feedback">{errors.reviewRemark.message}</div>}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+              {errors.reviewRemark
+                ? <div className="invalid-feedback d-block" role="alert">{errors.reviewRemark.message}</div>
+                : <span style={{ fontSize: 11, color: '#94A3B8' }}>Optional for approval, required for rejection</span>}
+              <span
+                id="remark-count"
+                style={{ fontSize: 11, color: (remarkValue?.length || 0) > maxRemark * 0.9 ? '#DC2626' : '#94A3B8', fontWeight: 500 }}
+                aria-live="polite"
+              >
+                {remarkValue?.length || 0}/{maxRemark}
+              </span>
+            </div>
           </div>
         </div>
       )}

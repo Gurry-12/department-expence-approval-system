@@ -1,18 +1,34 @@
 import { CLAIM_STATUS } from '../constants';
 
+const STATUS_CONFIG = {
+  [CLAIM_STATUS.APPROVED]: {
+    className: 'ef-badge ef-badge-approved',
+    icon: 'bi-check-circle-fill',
+    label: 'Approved',
+  },
+  [CLAIM_STATUS.REJECTED]: {
+    className: 'ef-badge ef-badge-rejected',
+    icon: 'bi-x-circle-fill',
+    label: 'Rejected',
+  },
+  [CLAIM_STATUS.PENDING]: {
+    className: 'ef-badge ef-badge-pending',
+    icon: 'bi-clock-fill',
+    label: 'Pending',
+  },
+};
+
 export const StatusBadge = ({ status }) => {
-  const getBadgeClass = (s) => {
-    switch (s) {
-      case CLAIM_STATUS.APPROVED: return 'bg-success bg-opacity-10 text-success border border-success border-opacity-25';
-      case CLAIM_STATUS.REJECTED: return 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25';
-      case CLAIM_STATUS.PENDING: return 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25';
-      default: return 'bg-secondary text-white';
-    }
+  const config = STATUS_CONFIG[status] || {
+    className: 'ef-badge',
+    icon: 'bi-circle',
+    label: status || 'Unknown',
   };
 
   return (
-    <span className={`badge rounded-pill px-3 py-2 fw-normal ${getBadgeClass(status)}`}>
-      {status || 'UNKNOWN'}
+    <span className={config.className} aria-label={`Status: ${config.label}`}>
+      <i className={`bi ${config.icon}`} style={{ fontSize: 9 }} aria-hidden="true" />
+      {config.label}
     </span>
   );
 };

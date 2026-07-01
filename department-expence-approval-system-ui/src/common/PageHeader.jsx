@@ -1,9 +1,9 @@
 export const PageHeader = ({ title, subtitle, action }) => (
-  <div className="d-flex justify-content-between align-items-center mb-4">
+  <div className="ef-page-header">
     <div>
-      <h2 className="mb-1 text-dark fw-bold">{title}</h2>
-      {subtitle && <p className="text-muted mb-0">{subtitle}</p>}
+      <h1 className="ef-page-title">{title}</h1>
+      {subtitle && <p className="ef-page-subtitle">{subtitle}</p>}
     </div>
-    {action && <div>{action}</div>}
+    {action && <div style={{ flexShrink: 0 }}>{action}</div>}
   </div>
 );

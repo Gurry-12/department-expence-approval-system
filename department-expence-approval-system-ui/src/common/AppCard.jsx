@@ -1,13 +1,14 @@
-export const AppCard = ({ title, children, action, className = '' }) => (
-  <div className={`card glass-card rounded-3 ${className}`}>
+export const AppCard = ({ title, children, action, className = '', style }) => (
+  <div className={`card ${className}`} style={style}>
     {(title || action) && (
-      <div className="card-header bg-transparent border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center">
-        {title && <h5 className="card-title fw-bold mb-0 text-dark">{title}</h5>}
+      <div
+        className="card-header bg-transparent d-flex justify-content-between align-items-center"
+        style={{ padding: '16px 24px 0', borderBottom: 'none' }}
+      >
+        {title && <h5 style={{ fontWeight: 700, margin: 0, fontSize: 15, color: '#1E293B' }}>{title}</h5>}
         {action && <div>{action}</div>}
       </div>
     )}
-    <div className="card-body">
-      {children}
-    </div>
+    <div className="card-body">{children}</div>
   </div>
 );

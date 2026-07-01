@@ -26,10 +26,11 @@ export const CLAIM_STATUS = {
 
 export const EXPENSE_CATEGORIES = [
   'TRAVEL',
-  'MEALS',
-  'SUPPLIES',
-  'EQUIPMENT',
-  'OTHER'
+  'FOOD',
+  'TRAINING',
+  'OFFICE_SUPPLIES',
+  'MEDICAL',
+  'OTHER',
 ];
 
 export const MONTHS = [
