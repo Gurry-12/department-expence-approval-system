@@ -23,6 +23,13 @@ public interface ExpenseClaimRepository extends JpaRepository<ExpenseClaim, Long
 
     long countByDepartmentId(Long departmentId);
 
+    @Query("SELECT COUNT(e) FROM ExpenseClaim e WHERE e.department.id = :departmentId AND MONTH(e.expenseDate) = :month AND YEAR(e.expenseDate) = :year")
+    long countByDepartmentIdAndMonthAndYear(
+            @Param("departmentId") Long departmentId,
+            @Param("month") Integer month,
+            @Param("year") Integer year
+    );
+
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM ExpenseClaim e WHERE e.department.id = :departmentId AND e.status = :status AND MONTH(e.expenseDate) = :month AND YEAR(e.expenseDate) = :year")
     BigDecimal calculateTotalApprovedAmount(
             @Param("departmentId") Long departmentId,

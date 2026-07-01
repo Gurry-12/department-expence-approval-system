@@ -7,14 +7,18 @@ import com.department.demo.entity.DepartmentBudget;
 import com.department.demo.exception.BadRequestException;
 import com.department.demo.exception.DuplicateResourceException;
 import com.department.demo.exception.ResourceNotFoundException;
+import com.department.demo.enums.ClaimStatus;
 import com.department.demo.repository.DepartmentBudgetRepository;
 import com.department.demo.repository.DepartmentRepository;
+import com.department.demo.repository.ExpenseClaimRepository;
 import com.department.demo.service.DepartmentBudgetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +30,7 @@ public class DepartmentBudgetServiceImpl implements DepartmentBudgetService {
 
     private final DepartmentBudgetRepository budgetRepository;
     private final DepartmentRepository departmentRepository;
+    private final ExpenseClaimRepository claimRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -79,6 +84,17 @@ public class DepartmentBudgetServiceImpl implements DepartmentBudgetService {
             throw new BadRequestException("Department, Month, and Year cannot be changed during an update. Only Budget Amount may change.");
         }
 
+        BigDecimal totalApproved = claimRepository.calculateTotalApprovedAmount(
+                budget.getDepartment().getId(),
+                ClaimStatus.APPROVED,
+                budget.getMonth().getValue(),
+                budget.getYear()
+        );
+
+        if (requestDTO.getBudgetAmount().compareTo(totalApproved) < 0) {
+            throw new BadRequestException("New budget amount cannot be less than already approved claims total of " + totalApproved);
+        }
+
         budget.setBudgetAmount(requestDTO.getBudgetAmount());
         DepartmentBudget updatedBudget = budgetRepository.save(budget);
         log.info("Department Budget Updated with ID: {}", updatedBudget.getId());
@@ -90,6 +106,17 @@ public class DepartmentBudgetServiceImpl implements DepartmentBudgetService {
     @Transactional
     public void deleteBudget(Long id) {
         DepartmentBudget budget = findBudgetById(id);
+
+        long claimCount = claimRepository.countByDepartmentIdAndMonthAndYear(
+                budget.getDepartment().getId(),
+                budget.getMonth().getValue(),
+                budget.getYear()
+        );
+
+        if (claimCount > 0) {
+            throw new BadRequestException("Cannot delete budget because expense claims exist for this month.");
+        }
+
         budgetRepository.delete(budget);
         log.info("Department Budget Deleted with ID: {}", id);
     }

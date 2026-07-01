@@ -9,13 +9,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/claims")
+@RequestMapping("/api/review")
 @RequiredArgsConstructor
 public class FinanceReviewController {
 
     private final FinanceReviewService reviewService;
 
-    @PostMapping("/{claimId}/review")
+    @PostMapping("/{claimId}")
     public ResponseEntity<GlobalResponse<Void>> reviewClaim(
             @PathVariable Long claimId,
             @Valid @RequestBody ReviewRequestDTO requestDTO) {

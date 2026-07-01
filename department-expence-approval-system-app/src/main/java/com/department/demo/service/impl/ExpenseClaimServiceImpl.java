@@ -28,6 +28,7 @@ public class ExpenseClaimServiceImpl implements ExpenseClaimService {
 
     private final ExpenseClaimRepository claimRepository;
     private final DepartmentRepository departmentRepository;
+    private final com.department.demo.repository.DepartmentBudgetRepository budgetRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -35,6 +36,15 @@ public class ExpenseClaimServiceImpl implements ExpenseClaimService {
     public ExpenseClaimResponseDTO createClaim(ExpenseClaimRequestDTO requestDTO) {
         Department department = departmentRepository.findById(requestDTO.getDepartmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + requestDTO.getDepartmentId()));
+
+        boolean budgetExists = budgetRepository.existsByDepartmentIdAndMonthAndYear(
+                department.getId(), 
+                requestDTO.getExpenseDate().getMonth(), 
+                requestDTO.getExpenseDate().getYear());
+
+        if (!budgetExists) {
+            throw new BadRequestException("Cannot create claim. No budget allocated for " + department.getDepartmentName() + " in " + requestDTO.getExpenseDate().getMonth() + " " + requestDTO.getExpenseDate().getYear());
+        }
 
         ExpenseClaim claim = ExpenseClaim.builder()
                 .employeeName(requestDTO.getEmployeeName())
@@ -70,6 +80,15 @@ public class ExpenseClaimServiceImpl implements ExpenseClaimService {
 
         Department department = departmentRepository.findById(requestDTO.getDepartmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + requestDTO.getDepartmentId()));
+
+        boolean budgetExists = budgetRepository.existsByDepartmentIdAndMonthAndYear(
+                department.getId(), 
+                requestDTO.getExpenseDate().getMonth(), 
+                requestDTO.getExpenseDate().getYear());
+
+        if (!budgetExists) {
+            throw new BadRequestException("Cannot update claim. No budget allocated for " + department.getDepartmentName() + " in " + requestDTO.getExpenseDate().getMonth() + " " + requestDTO.getExpenseDate().getYear());
+        }
 
         claim.setEmployeeName(requestDTO.getEmployeeName());
         claim.setDepartment(department);
